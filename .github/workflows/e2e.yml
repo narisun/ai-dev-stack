@@ -28,6 +28,25 @@ jobs:
           python-version: '3.11'
       - name: Install test dependencies
         run: pip install -r tests/requirements.txt
+      - name: Write CI .env (test-only secrets — never used outside CI)
+        run: |
+          cat > .env <<'ENVEOF'
+          POSTGRES_PASSWORD=ci-test-postgres
+          REDIS_PASSWORD=ci-test-redis
+          INTERNAL_API_KEY=sk-ent-ci-test-key-0000000000000000
+          JWT_SECRET=ci-test-jwt-secret-not-real
+          CONTEXT_HMAC_SECRET=ci-test-context-secret-not-real
+          AZURE_API_KEY=ci-test-azure-key
+          AZURE_API_BASE=https://ci.example.com
+          AZURE_API_VERSION=2024-10-21
+          ENVIRONMENT=ci
+          AGENT_ROLE=data_analyst_agent
+          LANGFUSE_DB_PASSWORD=ci-langfuse
+          LANGFUSE_NEXTAUTH_SECRET=ci-langfuse-nextauth
+          LANGFUSE_SALT=ci-langfuse-salt
+          LANGFUSE_ENCRYPTION_KEY=0000000000000000000000000000000000000000000000000000000000000000
+          TAVILY_API_KEY=
+          ENVEOF
       - name: Bring up the stack
         run: |
           docker compose up -d
