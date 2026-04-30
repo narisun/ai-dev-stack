@@ -52,32 +52,37 @@ PROJECT := enterprise-ai
 # fixture refresh.
 WIPEABLE_VOLUMES := $(PROJECT)_pgdata
 
-# Auto-create the venv + install platform-sdk on first run.
+# Auto-create the venv + install integration-test deps on first run.
+# The dev-stack venv is for running pytest tests/integration; the SDK
+# itself lives in narisun/ai-platform-sdk and is baked into each service
+# image, so no editable install is needed here.
 $(PYTHON):
 	@echo "→ Creating Python venv ($(VENV))..."
 	python3 -m venv $(VENV)
 	$(PIP) install --upgrade pip --quiet
-	@echo "→ Installing platform-sdk (editable)..."
-	$(PIP) install -e platform-sdk/ --quiet
+	@echo "→ Installing integration test dependencies..."
+	$(PIP) install -r tests/requirements.txt --quiet
 	@echo "✅ venv ready"
 
-setup: $(PYTHON) ## Wipe test fixtures, rebuild images, reload data (preserves Langfuse login)
+setup: $(PYTHON) ## Wipe test fixtures, pull images, reload data (preserves Langfuse login)
 	@test -f .env || (echo "ERROR: .env not found — run: cp .env.example .env" && exit 1)
 	@echo "→ Stopping containers (Langfuse data preserved)..."
 	$(COMPOSE) down --remove-orphans
 	@echo "→ Removing test-fixture volume so init scripts re-run..."
 	-@docker volume rm $(WIPEABLE_VOLUMES) 2>/dev/null || true
-	@echo "→ Building images and starting containers..."
-	$(COMPOSE) up -d --build
+	@echo "→ Pulling latest service images from GHCR..."
+	$(COMPOSE) pull
+	@echo "→ Starting containers..."
+	$(COMPOSE) up -d
 	@echo ""
 	@echo "✅ Stack ready — bankdw + salesforce fixtures loaded"
-	@echo "   Dashboard:       http://localhost:3003"
 	@echo "   Analytics agent: http://localhost:8086"
-	@echo "   Generic agent:   http://localhost:8000"
+	@echo "   Data MCP:        http://localhost:8080"
 	@echo "   LiteLLM proxy:   http://localhost:4000"
 	@echo "   OPA:             http://localhost:8181"
 	@echo "   PostgreSQL:      localhost:5432  (admin / \$$POSTGRES_PASSWORD)"
 	@echo "   Langfuse:        http://localhost:3001  (login persisted across setup)"
+	@echo "   Frontend:        deploys via Vercel (see narisun/ai-frontend-analytics)"
 
 wipe: ## Nuke everything (incl. Langfuse users/keys). Re-register required.
 	@test -f .env || (echo "ERROR: .env not found — run: cp .env.example .env" && exit 1)

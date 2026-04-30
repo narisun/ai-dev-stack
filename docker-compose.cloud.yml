@@ -80,8 +80,10 @@ services:
       # conflict and cause Docker to abort ALL port bindings for this container.
       # Access LangFuse admin via SSH tunnel instead:
       #   ssh -L 3001:localhost:3001 azureuser@<VM_IP>
+    # analytics-dashboard depends_on removed — frontend deploys via Vercel.
+    # Nginx may need its conf.d updated to drop the dashboard upstream.
     depends_on:
-      analytics-dashboard:
+      analytics-agent:
         condition: service_healthy
     restart: unless-stopped
     networks:
@@ -308,7 +310,7 @@ services:
     image: *img-opa
     container_name: ai-opa
     volumes:
-      - ./tools/policies/opa:/policies:ro
+      - ./policies/opa:/policies:ro
     command: ["run", "--server", "--addr", "0.0.0.0:8181", "--log-level", "info", "/policies"]
     healthcheck:
       test: ["CMD", "wget", "-qO-", "http://localhost:8181/health?plugins"]
@@ -323,9 +325,7 @@ services:
   # MCP TOOLS
   # ============================================================
   data-mcp:
-    build:
-      context: .
-      dockerfile: tools/data-mcp/Dockerfile
+    image: ghcr.io/narisun/ai-mcp-data:0.4.0
     container_name: ai-data-mcp
     environment:
       MCP_TRANSPORT: sse
@@ -358,9 +358,7 @@ services:
       - ai-network
 
   salesforce-mcp:
-    build:
-      context: .
-      dockerfile: tools/salesforce-mcp/Dockerfile
+    image: ghcr.io/narisun/ai-mcp-salesforce:0.4.0
     container_name: ai-salesforce-mcp
     environment:
       MCP_TRANSPORT: sse
@@ -393,9 +391,7 @@ services:
       - ai-network
 
   payments-mcp:
-    build:
-      context: .
-      dockerfile: tools/payments-mcp/Dockerfile
+    image: ghcr.io/narisun/ai-mcp-payments:0.4.0
     container_name: ai-payments-mcp
     environment:
       MCP_TRANSPORT: sse
@@ -428,9 +424,7 @@ services:
       - ai-network
 
   news-search-mcp:
-    build:
-      context: .
-      dockerfile: tools/news-search-mcp/Dockerfile
+    image: ghcr.io/narisun/ai-mcp-news-search:0.4.0
     container_name: ai-news-search-mcp
     environment:
       MCP_TRANSPORT: sse
@@ -462,9 +456,7 @@ services:
   # ANALYTICS AGENT
   # ============================================================
   analytics-agent:
-    build:
-      context: .
-      dockerfile: agents/analytics-agent/Dockerfile
+    image: ghcr.io/narisun/ai-agent-analytics:0.4.0
     container_name: ai-analytics-agent
     environment:
       LITELLM_BASE_URL: http://litellm:4000/v1
@@ -506,38 +498,9 @@ services:
       - ai-network
 
   # ============================================================
-  # ANALYTICS DASHBOARD
+  # analytics-dashboard service removed — frontend deploys via Vercel.
+  # See narisun/ai-frontend-analytics for the standalone repo.
   # ============================================================
-  analytics-dashboard:
-    build:
-      context: frontends/analytics-dashboard
-      dockerfile: Dockerfile
-    container_name: ai-analytics-dashboard
-    environment:
-      ANALYTICS_AGENT_URL: http://analytics-agent:8000
-      INTERNAL_API_KEY: ${INTERNAL_API_KEY}
-      # Auth0 OAuth
-      AUTH0_SECRET: ${AUTH0_SECRET}
-      AUTH0_BASE_URL: ${AUTH0_BASE_URL}
-      AUTH0_DOMAIN: ${AUTH0_DOMAIN}
-      AUTH0_CLIENT_ID: ${AUTH0_CLIENT_ID}
-      AUTH0_CLIENT_SECRET: ${AUTH0_CLIENT_SECRET}
-    depends_on:
-      analytics-agent:
-        condition: service_healthy
-    healthcheck:
-      # Hit the Next.js built-in readiness URL which always returns 200
-      # (avoids the 400 that Auth0 returns on the root URL for unauthenticated requests)
-      test: ["CMD", "node", "-e", "require('http').get('http://127.0.0.1:3000/api/auth/login',r=>{process.exit(r.statusCode<500?0:1)}).on('error',()=>process.exit(1))"]
-      interval: 20s
-      timeout: 5s
-      retries: 5
-      start_period: 45s
-    restart: unless-stopped
-    networks:
-      - ai-network
-    # Exposed only to Nginx, not to host
-    # App Gateway → Nginx:443 → analytics-dashboard:3000
 
 # ============================================================
 # VOLUMES & NETWORK

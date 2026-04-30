@@ -211,7 +211,7 @@ services:
     image: *img-opa
     container_name: ai-opa
     volumes:
-      - ./tools/policies/opa:/policies:ro
+      - ./policies/opa:/policies:ro
     command: ["run", "--server", "--addr", "0.0.0.0:8181", "--log-level", "info", "/policies"]
     healthcheck:
       test: ["CMD", "wget", "-qO-", "http://localhost:8181/health?plugins"]
@@ -227,9 +227,7 @@ services:
   # MCP SERVERS — data-mcp / salesforce-mcp / payments-mcp / news-search-mcp
   # ============================================================
   data-mcp:
-    build:
-      context: .
-      dockerfile: tools/data-mcp/Dockerfile
+    image: ghcr.io/narisun/ai-mcp-data:0.4.0
     container_name: ai-data-mcp
     environment:
       MCP_TRANSPORT: sse
@@ -271,9 +269,7 @@ services:
       - "127.0.0.1:8080:8080"
 
   salesforce-mcp:
-    build:
-      context: .
-      dockerfile: tools/salesforce-mcp/Dockerfile
+    image: ghcr.io/narisun/ai-mcp-salesforce:0.4.0
     container_name: ai-salesforce-mcp
     environment:
       MCP_TRANSPORT: sse
@@ -312,9 +308,7 @@ services:
       - "127.0.0.1:8081:8081"
 
   payments-mcp:
-    build:
-      context: .
-      dockerfile: tools/payments-mcp/Dockerfile
+    image: ghcr.io/narisun/ai-mcp-payments:0.4.0
     container_name: ai-payments-mcp
     environment:
       MCP_TRANSPORT: sse
@@ -353,9 +347,7 @@ services:
       - "127.0.0.1:8082:8082"
 
   news-search-mcp:
-    build:
-      context: .
-      dockerfile: tools/news-search-mcp/Dockerfile
+    image: ghcr.io/narisun/ai-mcp-news-search:0.4.0
     container_name: ai-news-search-mcp
     environment:
       MCP_TRANSPORT: sse
@@ -391,9 +383,7 @@ services:
   # ANALYTICS AGENT — primary agentic analytics service (LangGraph)
   # ============================================================
   analytics-agent:
-    build:
-      context: .
-      dockerfile: agents/analytics-agent/Dockerfile
+    image: ghcr.io/narisun/ai-agent-analytics:0.4.0
     container_name: ai-analytics-agent
     environment:
       LITELLM_BASE_URL: http://litellm:4000/v1
@@ -442,34 +432,9 @@ services:
       - "127.0.0.1:8086:8000"
 
   # ============================================================
-  # ANALYTICS DASHBOARD — Next.js + Auth0 + Vercel AI SDK
+  # analytics-dashboard service removed — frontend deploys via Vercel.
+  # See narisun/ai-frontend-analytics for the standalone repo.
   # ============================================================
-  analytics-dashboard:
-    build:
-      context: frontends/analytics-dashboard
-      dockerfile: Dockerfile
-    container_name: ai-analytics-dashboard
-    environment:
-      ANALYTICS_AGENT_URL: http://analytics-agent:8000
-      INTERNAL_API_KEY: ${INTERNAL_API_KEY}
-      AUTH0_SECRET: ${AUTH0_SECRET}
-      AUTH0_BASE_URL: ${AUTH0_BASE_URL:-http://localhost:3003}
-      AUTH0_DOMAIN: ${AUTH0_DOMAIN}
-      AUTH0_CLIENT_ID: ${AUTH0_CLIENT_ID}
-      AUTH0_CLIENT_SECRET: ${AUTH0_CLIENT_SECRET}
-    depends_on:
-      analytics-agent:
-        condition: service_healthy
-    healthcheck:
-      test: ["CMD", "wget", "-qO-", "http://localhost:3000/"]
-      interval: 20s
-      timeout: 5s
-      retries: 5
-      start_period: 30s
-    networks:
-      - ai-network
-    ports:
-      - "127.0.0.1:3003:3000"
 
 # ============================================================
 # Network + volumes
