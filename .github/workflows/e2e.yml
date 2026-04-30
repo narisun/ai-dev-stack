@@ -39,7 +39,7 @@ jobs:
           AZURE_API_KEY=ci-test-azure-key
           AZURE_API_BASE=https://ci.example.com
           AZURE_API_VERSION=2024-10-21
-          ENVIRONMENT=ci
+          ENVIRONMENT=test
           AGENT_ROLE=data_analyst_agent
           LANGFUSE_DB_PASSWORD=ci-langfuse
           LANGFUSE_NEXTAUTH_SECRET=ci-langfuse-nextauth
