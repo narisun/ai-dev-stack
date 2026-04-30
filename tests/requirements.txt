@@ -1,10 +1,10 @@
-# Test-layer dependencies
-# Install alongside each service's own requirements:
-#   pip install -e platform-sdk/
-#   pip install -r tests/requirements.txt
+# Test-layer dependencies for the ai-dev-stack repo.
 #
-# The platform-sdk is the only non-test dep needed for unit tests —
-# it provides AgentContext, make_cache_key, RMBrief, etc.
+# The platform-sdk is needed at test time for AgentContext, make_cache_key,
+# RMBrief, and the testing fixtures (TEST_PERSONAS, etc.) loaded by
+# tests/conftest.py. It's published from narisun/ai-platform-sdk; pin the
+# tag here so test runs are reproducible.
+enterprise-ai-platform-sdk @ git+https://github.com/narisun/ai-platform-sdk.git@v0.4.0
 
 # Core test framework
 pytest>=8.0.0
