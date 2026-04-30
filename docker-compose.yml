@@ -435,7 +435,7 @@ services:
       DATA_MCP_URL: http://data-mcp:8080/sse
       SALESFORCE_MCP_URL: http://salesforce-mcp:8081/sse
       PAYMENTS_MCP_URL: http://payments-mcp:8082/sse
-      NEWS_MCP_URL: http://news-search-mcp:8083/sse
+      NEWS_SEARCH_MCP_URL: http://news-search-mcp:8083/sse
       ENVIRONMENT: ${ENVIRONMENT:-local}
       JWT_SECRET: ${JWT_SECRET:-test-secret-change-in-prod}
       CONTEXT_HMAC_SECRET: ${CONTEXT_HMAC_SECRET:-test-context-secret-change-in-prod}
