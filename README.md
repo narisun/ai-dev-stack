@@ -10,7 +10,6 @@ Enterprise AI is an agentic platform for regulated financial-services workflows.
 The project includes:
 
 - **`analytics-agent`** — primary analytics agent (LangGraph, four-layer SoC/DI architecture)
-- **`ai-agents`** — generic ReAct chat agent backed by a secure SQL MCP server
 - **`analytics-dashboard`** — Next.js + Auth0 visualization frontend
 - **Four MCP tool servers** — `data-mcp`, `salesforce-mcp`, `payments-mcp`, `news-search-mcp`
 
@@ -115,7 +114,6 @@ After `make setup`:
 |---|---|---|
 | Analytics Dashboard | http://localhost:3003 | Next.js + Vercel AI SDK |
 | Analytics Agent API | http://localhost:8086 | FastAPI; LangGraph orchestrator |
-| Generic Agent API | http://localhost:8000 | Legacy ReAct chat agent |
 | **Langfuse UI** | **http://localhost:3001** | **LLM trace UI — see [Observability](#observability)** |
 | LiteLLM Proxy | http://localhost:4000 | LLM routing |
 | OPA | http://localhost:8181 | Policy engine |
@@ -136,7 +134,6 @@ All host ports are bound to `127.0.0.1` only.
 ```bash
 # Health checks
 curl -s http://localhost:8086/health   # analytics-agent
-curl -s http://localhost:8000/health   # generic agent
 curl -s http://localhost:13133/        # OTel collector
 
 # Live request through the analytics-agent (streams Vercel Data Stream Protocol)
@@ -273,7 +270,6 @@ Integration tests against the running stack (require `make setup` first):
 ```
 enterprise-ai/
 ├── agents/
-│   ├── src/                       # Generic chat agent (legacy ReAct)
 │   └── analytics-agent/
 │       ├── src/
 │       │   ├── app.py             # create_app(deps) factory + lifespan

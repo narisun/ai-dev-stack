@@ -388,39 +388,6 @@ services:
       - "127.0.0.1:8083:8083"
 
   # ============================================================
-  # GENERIC AGENT (legacy ReAct chat agent)
-  # ============================================================
-  ai-agents:
-    build:
-      context: .
-      dockerfile: agents/Dockerfile
-    container_name: ai-agents
-    environment:
-      LITELLM_BASE_URL: http://litellm:4000/v1
-      MCP_SSE_URL: http://data-mcp:8080/sse
-      INTERNAL_API_KEY: ${INTERNAL_API_KEY}
-      SERVICE_NAME: ai-agents
-      AGENT_MODEL_ROUTE: ${AGENT_MODEL_ROUTE:-complex-routing}
-      ENABLE_COMPACTION: ${ENABLE_COMPACTION:-true}
-      AGENT_CONTEXT_TOKEN_LIMIT: ${AGENT_CONTEXT_TOKEN_LIMIT:-6000}
-      AGENT_RECURSION_LIMIT: ${AGENT_RECURSION_LIMIT:-10}
-      <<: *otel-env
-    depends_on:
-      data-mcp:
-        condition: service_healthy
-    healthcheck:
-      test: ["CMD", "python3", "-c",
-             "import urllib.request; urllib.request.urlopen('http://localhost:8000/health')"]
-      interval: 15s
-      timeout: 5s
-      retries: 5
-      start_period: 30s
-    networks:
-      - ai-network
-    ports:
-      - "127.0.0.1:8000:8000"
-
-  # ============================================================
   # ANALYTICS AGENT — primary agentic analytics service (LangGraph)
   # ============================================================
   analytics-agent:
