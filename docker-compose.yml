@@ -231,18 +231,14 @@ services:
   # in the catalog UI — useful as an ops alert.
   # ============================================================
   ai-registry:
-    image: ghcr.io/narisun/ai-registry:0.5.1
+    image: ghcr.io/narisun/ai-registry:0.6.0
+    env_file: .env
     container_name: ai-registry
     ports:
       - "127.0.0.1:8090:8090"
     environment:
-      REGISTRY_PORT: 8090
-      INTERNAL_API_KEY: ${INTERNAL_API_KEY}
-      SQLITE_PATH: /var/lib/registry/registry.db
-      SEED_PATH: /etc/registry/registry.yaml
-      HEARTBEAT_GRACE_SECONDS: "60"
-      EVICTION_SECONDS: "300"
-      REAPER_INTERVAL_SECONDS: "30"
+      ENVIRONMENT: dev
+      <<: *otel-env
     volumes:
       - ai-registry-data:/var/lib/registry
       - ./config/registry.yaml:/etc/registry/registry.yaml:ro
@@ -260,30 +256,11 @@ services:
   # MCP SERVERS — data-mcp / salesforce-mcp / payments-mcp / news-search-mcp
   # ============================================================
   data-mcp:
-    image: ghcr.io/narisun/ai-mcp-data:0.5.2
+    image: ghcr.io/narisun/ai-mcp-data:0.6.0
+    env_file: .env
     container_name: ai-data-mcp
     environment:
-      MCP_TRANSPORT: sse
-      OPA_URL: http://opa:8181/v1/data/mcp/tools/allow
-      DB_HOST: pgvector
-      DB_PORT: 5432
-      DB_USER: admin
-      DB_PASS: ${POSTGRES_PASSWORD}
-      DB_NAME: ai_memory
-      SERVICE_NAME: data-mcp
-      ENVIRONMENT: ${ENVIRONMENT:-local}
-      AGENT_ROLE: ${AGENT_ROLE:-data_analyst_agent}
-      REDIS_HOST: redis
-      REDIS_PORT: 6379
-      REDIS_PASSWORD: ${REDIS_PASSWORD}
-      ENABLE_TOOL_CACHE: "true"
-      TOOL_CACHE_TTL: "300"
-      JWT_SECRET: ${JWT_SECRET:-test-secret-change-in-prod}
-      CONTEXT_HMAC_SECRET: ${CONTEXT_HMAC_SECRET:-test-context-secret-change-in-prod}
-      RELATIONSHIPS_YAML_PATH: /app/platform/db/relationships.yaml
-      REGISTRY_URL: http://ai-registry:8090
-      SERVICE_URL: http://data-mcp:8080
-      INTERNAL_API_KEY: ${INTERNAL_API_KEY}
+      ENVIRONMENT: dev
       <<: *otel-env
     volumes:
       - ./platform/db/relationships.yaml:/app/platform/db/relationships.yaml:ro
@@ -307,29 +284,11 @@ services:
       - "127.0.0.1:8080:8080"
 
   salesforce-mcp:
-    image: ghcr.io/narisun/ai-mcp-salesforce:0.5.2
+    image: ghcr.io/narisun/ai-mcp-salesforce:0.6.0
+    env_file: .env
     container_name: ai-salesforce-mcp
     environment:
-      MCP_TRANSPORT: sse
-      OPA_URL: http://opa:8181/v1/data/mcp/tools/allow
-      DB_HOST: pgvector
-      DB_PORT: 5432
-      DB_USER: admin
-      DB_PASS: ${POSTGRES_PASSWORD}
-      DB_NAME: ai_memory
-      SERVICE_NAME: salesforce-mcp
-      ENVIRONMENT: ${ENVIRONMENT:-local}
-      AGENT_ROLE: ${AGENT_ROLE:-data_analyst_agent}
-      JWT_SECRET: ${JWT_SECRET:-test-secret-change-in-prod}
-      CONTEXT_HMAC_SECRET: ${CONTEXT_HMAC_SECRET:-test-context-secret-change-in-prod}
-      REDIS_HOST: redis
-      REDIS_PORT: 6379
-      REDIS_PASSWORD: ${REDIS_PASSWORD}
-      ENABLE_TOOL_CACHE: "true"
-      TOOL_CACHE_TTL: "1800"
-      REGISTRY_URL: http://ai-registry:8090
-      SERVICE_URL: http://salesforce-mcp:8081
-      INTERNAL_API_KEY: ${INTERNAL_API_KEY}
+      ENVIRONMENT: dev
       <<: *otel-env
     depends_on:
       pgvector:
@@ -351,29 +310,11 @@ services:
       - "127.0.0.1:8081:8081"
 
   payments-mcp:
-    image: ghcr.io/narisun/ai-mcp-payments:0.5.2
+    image: ghcr.io/narisun/ai-mcp-payments:0.6.0
+    env_file: .env
     container_name: ai-payments-mcp
     environment:
-      MCP_TRANSPORT: sse
-      OPA_URL: http://opa:8181/v1/data/mcp/tools/allow
-      DB_HOST: pgvector
-      DB_PORT: 5432
-      DB_USER: admin
-      DB_PASS: ${POSTGRES_PASSWORD}
-      DB_NAME: ai_memory
-      SERVICE_NAME: payments-mcp
-      ENVIRONMENT: ${ENVIRONMENT:-local}
-      AGENT_ROLE: ${AGENT_ROLE:-data_analyst_agent}
-      JWT_SECRET: ${JWT_SECRET:-test-secret-change-in-prod}
-      CONTEXT_HMAC_SECRET: ${CONTEXT_HMAC_SECRET:-test-context-secret-change-in-prod}
-      REDIS_HOST: redis
-      REDIS_PORT: 6379
-      REDIS_PASSWORD: ${REDIS_PASSWORD}
-      ENABLE_TOOL_CACHE: "true"
-      TOOL_CACHE_TTL: "3600"
-      REGISTRY_URL: http://ai-registry:8090
-      SERVICE_URL: http://payments-mcp:8082
-      INTERNAL_API_KEY: ${INTERNAL_API_KEY}
+      ENVIRONMENT: dev
       <<: *otel-env
     depends_on:
       pgvector:
@@ -395,25 +336,11 @@ services:
       - "127.0.0.1:8082:8082"
 
   news-search-mcp:
-    image: ghcr.io/narisun/ai-mcp-news-search:0.5.2
+    image: ghcr.io/narisun/ai-mcp-news-search:0.6.0
+    env_file: .env
     container_name: ai-news-search-mcp
     environment:
-      MCP_TRANSPORT: sse
-      OPA_URL: http://opa:8181/v1/data/mcp/tools/allow
-      TAVILY_API_KEY: ${TAVILY_API_KEY:-}
-      SERVICE_NAME: news-search-mcp
-      ENVIRONMENT: ${ENVIRONMENT:-local}
-      AGENT_ROLE: ${AGENT_ROLE:-data_analyst_agent}
-      JWT_SECRET: ${JWT_SECRET:-test-secret-change-in-prod}
-      CONTEXT_HMAC_SECRET: ${CONTEXT_HMAC_SECRET:-test-context-secret-change-in-prod}
-      REDIS_HOST: redis
-      REDIS_PORT: 6379
-      REDIS_PASSWORD: ${REDIS_PASSWORD}
-      ENABLE_TOOL_CACHE: "true"
-      TOOL_CACHE_TTL: "1800"
-      REGISTRY_URL: http://ai-registry:8090
-      SERVICE_URL: http://news-search-mcp:8083
-      INTERNAL_API_KEY: ${INTERNAL_API_KEY}
+      ENVIRONMENT: dev
       <<: *otel-env
     depends_on:
       opa:
@@ -436,32 +363,11 @@ services:
   # ANALYTICS AGENT — primary agentic analytics service (LangGraph)
   # ============================================================
   analytics-agent:
-    image: ghcr.io/narisun/ai-agent-analytics:0.5.3
+    image: ghcr.io/narisun/ai-agent-analytics:0.6.0
+    env_file: .env
     container_name: ai-analytics-agent
     environment:
-      LITELLM_BASE_URL: http://litellm:4000/v1
-      INTERNAL_API_KEY: ${INTERNAL_API_KEY}
-      SERVICE_NAME: analytics-agent
-      DATA_MCP_URL: http://data-mcp:8080/sse
-      SALESFORCE_MCP_URL: http://salesforce-mcp:8081/sse
-      PAYMENTS_MCP_URL: http://payments-mcp:8082/sse
-      NEWS_SEARCH_MCP_URL: http://news-search-mcp:8083/sse
-      ENVIRONMENT: ${ENVIRONMENT:-local}
-      JWT_SECRET: ${JWT_SECRET:-test-secret-change-in-prod}
-      CONTEXT_HMAC_SECRET: ${CONTEXT_HMAC_SECRET:-test-context-secret-change-in-prod}
-      ROUTER_MODEL_ROUTE: ${ROUTER_MODEL_ROUTE:-fast-routing}
-      SYNTHESIS_MODEL_ROUTE: ${SYNTHESIS_MODEL_ROUTE:-complex-routing}
-      ENABLE_COMPACTION: ${ENABLE_COMPACTION:-true}
-      AGENT_CONTEXT_TOKEN_LIMIT: ${AGENT_CONTEXT_TOKEN_LIMIT:-6000}
-      AGENT_RECURSION_LIMIT: ${AGENT_RECURSION_LIMIT:-10}
-      MCP_STARTUP_TIMEOUT: "30"
-      LANGFUSE_PUBLIC_KEY: ${LANGFUSE_PUBLIC_KEY:-}
-      LANGFUSE_SECRET_KEY: ${LANGFUSE_SECRET_KEY:-}
-      # In-cluster URL: agents call langfuse over the compose network,
-      # not via the host's localhost:3001 port mapping.
-      LANGFUSE_HOST: http://langfuse:3000
-      REGISTRY_URL: http://ai-registry:8090
-      SERVICE_URL: http://analytics-agent:8000
+      ENVIRONMENT: dev
       <<: *otel-env
     depends_on:
       data-mcp:
