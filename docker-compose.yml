@@ -224,6 +224,39 @@ services:
       - "127.0.0.1:8181:8181"
 
   # ============================================================
+  # AI-REGISTRY — service catalog (every agent + MCP self-registers here)
+  #
+  # Seed YAML (config/registry.yaml) declares the services this stack expects.
+  # Services that haven't yet posted /api/services show as state=expected_unregistered
+  # in the catalog UI — useful as an ops alert.
+  # ============================================================
+  ai-registry:
+    image: ghcr.io/narisun/ai-registry:0.5.0
+    container_name: ai-registry
+    ports:
+      - "127.0.0.1:8090:8090"
+    environment:
+      REGISTRY_PORT: 8090
+      INTERNAL_API_KEY: ${INTERNAL_API_KEY}
+      SQLITE_PATH: /var/lib/registry/registry.db
+      SEED_PATH: /etc/registry/registry.yaml
+      HEARTBEAT_GRACE_SECONDS: "60"
+      EVICTION_SECONDS: "300"
+      REAPER_INTERVAL_SECONDS: "30"
+    volumes:
+      - ai-registry-data:/var/lib/registry
+      - ./config/registry.yaml:/etc/registry/registry.yaml:ro
+    healthcheck:
+      test: ["CMD", "curl", "-fsS", "http://localhost:8090/health"]
+      interval: 10s
+      timeout: 3s
+      start_period: 10s
+      retries: 3
+    restart: unless-stopped
+    networks:
+      - ai-network
+
+  # ============================================================
   # MCP SERVERS — data-mcp / salesforce-mcp / payments-mcp / news-search-mcp
   # ============================================================
   data-mcp:
@@ -248,6 +281,9 @@ services:
       JWT_SECRET: ${JWT_SECRET:-test-secret-change-in-prod}
       CONTEXT_HMAC_SECRET: ${CONTEXT_HMAC_SECRET:-test-context-secret-change-in-prod}
       RELATIONSHIPS_YAML_PATH: /app/platform/db/relationships.yaml
+      REGISTRY_URL: http://ai-registry:8090
+      SERVICE_URL: http://data-mcp:8080
+      INTERNAL_API_KEY: ${INTERNAL_API_KEY}
       <<: *otel-env
     volumes:
       - ./platform/db/relationships.yaml:/app/platform/db/relationships.yaml:ro
@@ -255,6 +291,8 @@ services:
       pgvector:
         condition: service_healthy
       opa:
+        condition: service_healthy
+      ai-registry:
         condition: service_healthy
     healthcheck:
       test: ["CMD", "python3", "-c",
@@ -289,11 +327,16 @@ services:
       REDIS_PASSWORD: ${REDIS_PASSWORD}
       ENABLE_TOOL_CACHE: "true"
       TOOL_CACHE_TTL: "1800"
+      REGISTRY_URL: http://ai-registry:8090
+      SERVICE_URL: http://salesforce-mcp:8081
+      INTERNAL_API_KEY: ${INTERNAL_API_KEY}
       <<: *otel-env
     depends_on:
       pgvector:
         condition: service_healthy
       opa:
+        condition: service_healthy
+      ai-registry:
         condition: service_healthy
     healthcheck:
       test: ["CMD", "python3", "-c",
@@ -328,11 +371,16 @@ services:
       REDIS_PASSWORD: ${REDIS_PASSWORD}
       ENABLE_TOOL_CACHE: "true"
       TOOL_CACHE_TTL: "3600"
+      REGISTRY_URL: http://ai-registry:8090
+      SERVICE_URL: http://payments-mcp:8082
+      INTERNAL_API_KEY: ${INTERNAL_API_KEY}
       <<: *otel-env
     depends_on:
       pgvector:
         condition: service_healthy
       opa:
+        condition: service_healthy
+      ai-registry:
         condition: service_healthy
     healthcheck:
       test: ["CMD", "python3", "-c",
@@ -363,9 +411,14 @@ services:
       REDIS_PASSWORD: ${REDIS_PASSWORD}
       ENABLE_TOOL_CACHE: "true"
       TOOL_CACHE_TTL: "1800"
+      REGISTRY_URL: http://ai-registry:8090
+      SERVICE_URL: http://news-search-mcp:8083
+      INTERNAL_API_KEY: ${INTERNAL_API_KEY}
       <<: *otel-env
     depends_on:
       opa:
+        condition: service_healthy
+      ai-registry:
         condition: service_healthy
     healthcheck:
       test: ["CMD", "python3", "-c",
@@ -407,6 +460,8 @@ services:
       # In-cluster URL: agents call langfuse over the compose network,
       # not via the host's localhost:3001 port mapping.
       LANGFUSE_HOST: http://langfuse:3000
+      REGISTRY_URL: http://ai-registry:8090
+      SERVICE_URL: http://analytics-agent:8000
       <<: *otel-env
     depends_on:
       data-mcp:
@@ -418,6 +473,8 @@ services:
       news-search-mcp:
         condition: service_healthy
       litellm:
+        condition: service_healthy
+      ai-registry:
         condition: service_healthy
     healthcheck:
       test: ["CMD", "python3", "-c",
@@ -446,3 +503,4 @@ networks:
 volumes:
   pgdata:
   langfuse-db-data:
+  ai-registry-data:
