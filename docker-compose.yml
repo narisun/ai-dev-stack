@@ -260,7 +260,7 @@ services:
   # MCP SERVERS — data-mcp / salesforce-mcp / payments-mcp / news-search-mcp
   # ============================================================
   data-mcp:
-    image: ghcr.io/narisun/ai-mcp-data:0.4.0
+    image: ghcr.io/narisun/ai-mcp-data:0.5.0
     container_name: ai-data-mcp
     environment:
       MCP_TRANSPORT: sse
@@ -307,7 +307,7 @@ services:
       - "127.0.0.1:8080:8080"
 
   salesforce-mcp:
-    image: ghcr.io/narisun/ai-mcp-salesforce:0.4.0
+    image: ghcr.io/narisun/ai-mcp-salesforce:0.5.0
     container_name: ai-salesforce-mcp
     environment:
       MCP_TRANSPORT: sse
@@ -351,7 +351,7 @@ services:
       - "127.0.0.1:8081:8081"
 
   payments-mcp:
-    image: ghcr.io/narisun/ai-mcp-payments:0.4.0
+    image: ghcr.io/narisun/ai-mcp-payments:0.5.0
     container_name: ai-payments-mcp
     environment:
       MCP_TRANSPORT: sse
@@ -395,7 +395,7 @@ services:
       - "127.0.0.1:8082:8082"
 
   news-search-mcp:
-    image: ghcr.io/narisun/ai-mcp-news-search:0.4.0
+    image: ghcr.io/narisun/ai-mcp-news-search:0.5.0
     container_name: ai-news-search-mcp
     environment:
       MCP_TRANSPORT: sse
@@ -436,7 +436,7 @@ services:
   # ANALYTICS AGENT — primary agentic analytics service (LangGraph)
   # ============================================================
   analytics-agent:
-    image: ghcr.io/narisun/ai-agent-analytics:0.4.0
+    image: ghcr.io/narisun/ai-agent-analytics:0.5.0
     container_name: ai-analytics-agent
     environment:
       LITELLM_BASE_URL: http://litellm:4000/v1
