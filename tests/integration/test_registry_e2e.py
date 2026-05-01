@@ -30,11 +30,28 @@ def test_registry_health_endpoint():
 
 
 def test_registry_seeded_services_visible():
-    """Services seeded in registry.yaml should appear (possibly as expected_unregistered
-    if SDK is still 0.4.0 — Task 19 bumps services to 0.5.0 and they self-register)."""
+    """All five services should appear in the registry catalog under their
+    short names (matches what BaseAgentApp / McpService self-register under,
+    and matches config/registry.yaml seed)."""
     r = httpx.get(f"{REGISTRY_URL}/api/services", timeout=5)
     assert r.status_code == 200
     services = {s["name"]: s for s in r.json().get("services", [])}
-    expected = {"ai-agent-analytics", "ai-mcp-data", "ai-mcp-salesforce",
-                "ai-mcp-payments", "ai-mcp-news-search"}
+    expected = {"analytics-agent", "data-mcp", "salesforce-mcp",
+                "payments-mcp", "news-search-mcp"}
     assert expected.issubset(services.keys())
+
+
+def test_registry_all_services_registered():
+    """After ~75s of warmup (CI does its own wait), all five expected services
+    should be in state='registered' — i.e. they each successfully called
+    POST /api/services on startup. This is the headline E2E assertion."""
+    def all_registered() -> bool:
+        r = httpx.get(f"{REGISTRY_URL}/api/services", timeout=5)
+        if r.status_code != 200:
+            return False
+        states = {s["name"]: s["state"] for s in r.json().get("services", [])}
+        expected = {"analytics-agent", "data-mcp", "salesforce-mcp",
+                    "payments-mcp", "news-search-mcp"}
+        return all(states.get(n) == "registered" for n in expected)
+
+    _wait_for(all_registered, timeout=60.0, interval=2.0)
