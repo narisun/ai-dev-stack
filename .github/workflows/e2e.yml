@@ -52,6 +52,12 @@ jobs:
           docker compose up -d
           sleep 30  # let services boot
           docker compose ps
+      - name: Wait for registry
+        run: |
+          for i in {1..30}; do
+            if curl -fsS http://localhost:8090/health > /dev/null; then break; fi
+            sleep 2
+          done
       - name: Run integration tests
         run: pytest tests/integration -v
       - name: Show logs on failure
