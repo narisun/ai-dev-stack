@@ -231,7 +231,7 @@ services:
   # in the catalog UI — useful as an ops alert.
   # ============================================================
   ai-registry:
-    image: ghcr.io/narisun/ai-registry:0.6.0
+    image: ghcr.io/narisun/ai-registry:0.6.2
     env_file: .env
     container_name: ai-registry
     ports:
@@ -336,7 +336,7 @@ services:
       - "127.0.0.1:8082:8082"
 
   news-search-mcp:
-    image: ghcr.io/narisun/ai-mcp-news-search:0.6.0
+    image: ghcr.io/narisun/ai-mcp-news-search:0.6.2
     env_file: .env
     container_name: ai-news-search-mcp
     environment:
