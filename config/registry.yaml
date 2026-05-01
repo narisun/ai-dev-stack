@@ -2,20 +2,20 @@
 # Services that have NOT registered themselves (POST /api/services on startup)
 # show as state='expected_unregistered' in the catalog UI — useful ops alert.
 services:
-  - name: ai-agent-analytics
+  - name: analytics-agent
     type: agent
     expected_url: http://analytics-agent:8000
     metadata:
       owner: analytics-team
-  - name: ai-mcp-data
+  - name: data-mcp
     type: mcp
     expected_url: http://data-mcp:8080
-  - name: ai-mcp-salesforce
+  - name: salesforce-mcp
     type: mcp
     expected_url: http://salesforce-mcp:8081
-  - name: ai-mcp-payments
+  - name: payments-mcp
     type: mcp
     expected_url: http://payments-mcp:8082
-  - name: ai-mcp-news-search
+  - name: news-search-mcp
     type: mcp
     expected_url: http://news-search-mcp:8083
